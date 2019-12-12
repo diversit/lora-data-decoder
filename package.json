@@ -1,0 +1,36 @@
+{
+  "name": "lora-data-decoder",
+  "version": "1.0.0",
+  "description": "Decode Lora data packets to readable device id's which can be used to find packets of known devices",
+  "main": "./lib/decoder-cli.js",
+  "bin": {
+    "lora-data-decoder": "./lib/decoder-cli.js"
+  },
+  "preferGlobal": true,
+  "scripts": {
+    "clean": "rm -rf ./lib/*",
+    "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/decoder-cli.ts",
+    "create": "npm run build && npm run test",
+    "build": "tsc -p .",
+    "test": "sudo npm i -g && lora-data-decoder",
+    "refresh": "rm -rf ./node_modules ./package-lock.json && npm install"
+  },
+  "author": "Joost den Boer",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^3.0.0",
+    "clear": "^0.1.0",
+    "colors": "^1.4.0",
+    "commander": "^4.0.1",
+    "figlet": "^1.2.4",
+    "lora-packet": "^0.7.12",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.17",
+    "nodemon": "^2.0.2",
+    "ts-node": "^8.5.4",
+    "ts-node-dev": "^1.0.0-pre.44",
+    "typescript": "^3.7.3"
+  }
+}
