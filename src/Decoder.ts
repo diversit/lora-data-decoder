@@ -16,12 +16,7 @@ export class Decoder {
         if (!inputFile) {
             console.warn(colors.red("input filename missing"))
         }
-        
-        // If no options or inputFile, show help and exit
-        if (!process.argv.slice(2).length || !inputFile) {
-            cmdObj.help()
-        }
-        
+                
         if (cmdObj.quiet) {
             console.warn('Running quietly')
         } else {
@@ -71,9 +66,12 @@ export class Decoder {
         
         var processed = 0
         
+        console.warn('Start processing:')
+
         readInterface.on('line', (line: string) => {
             if (line != "[" && line != "]" && line != "{}") {
-                let json = line.slice(0, -1)
+                let json = line.endsWith(',') ? line.slice(0, -1) : line
+
                 // console.log(`line:${json}`)
         
                 let obj = JSON.parse(json)
@@ -117,6 +115,8 @@ export class Decoder {
                     processed++
                 }
             }
+
+            process.stderr.write('.')
         })
         
         readInterface.on("close", () => {

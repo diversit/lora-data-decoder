@@ -2,6 +2,7 @@
 
 import { Decoder } from "./Decoder"
 import { Command } from "commander"
+import { Parser } from "./Parser"
 
 const chalk      = require('chalk')
 const clear      = require('clear')
@@ -26,6 +27,7 @@ program
 
 program
     .command('decode <input>')
+    .description('Decode LoRa data packets and output result in cvs format in single file or file per device address.')
     .option('--clear', 'Clean output file and/or folder. Use with -s', false)
     .option('-d, --dest-file <file>', 'Destination file for output for all devices.', undefined)
     .option('-o, --out <folder>', 'Output folder for files per device. Use with -s.', 'out')
@@ -35,9 +37,16 @@ program
         new Decoder().decode(input, cmdObject)
     })
 
+program
+    .command('prepare <json>')
+    .description('Prepare pcap-json file (Wireshark: open pcap file, export Packet Dissections As Json) for data parsing')
+    .action((input: string, cmdObject: Command) => {
+        new Parser().parse(input, cmdObject)
+    })
+
 program.on('--help', () => {
     console.log('')
-    console.log('More about commands:')
+    console.log('View command options:')
     console.log('  [command] -h')
 })
 
@@ -47,47 +56,3 @@ program.parse(process.argv)
 if (!process.argv.slice(2).length) {
     program.help()
 }
-
-// Verify inputFile
-// if (!inputFile) {
-//     console.warn(colors.red("input filename missing"))
-// }
-
-// // If no options or inputFile, show help and exit
-// if (!process.argv.slice(2).length || !inputFile) {
-//     program.help()
-// }
-
-// if (program.quiet) {
-//     console.warn('Running quietly')
-// } else {
-//     console.log("Device Address;Message Type;Direction;FCnt;FPort;Payload Data;Original json")
-// }
-
-// if (program.splitDevices) {    
-//     if (fs.existsSync(program.out)) {
-//         if (program.clear) {
-//             console.warn(`Clearing output folder ${program.out}`)
-//             let deleted = fs.readdirSync(program.out)
-//                 .map((file: string) => {
-//                     // console.warn(`Delete ${file}`)
-//                     fs.unlinkSync(program.out + "/" + file)
-//                     return 1
-//                 })
-//                 .reduce((a: number, b: number) => a + b, 0)
-//             console.warn(`Removed ${deleted} files from ${program.out}`)
-//         }
-//     }
-
-//     if (!fs.existsSync(program.out)) {
-//         console.warn(`Creating folder ${program.out}`)
-//         fs.mkdirSync(program.out)
-//     } 
-// }
-
-// if (program.destFile && fs.existsSync(program.destFile) && program.clear) {
-//     fs.unlinkSync(program.destFile)
-//     console.warn(`Removed ${program.destFile}`)
-// }
-
-// START OF PROGRAM
