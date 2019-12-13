@@ -2,14 +2,25 @@ import * as fs from 'fs'
 import * as readline from 'readline'
 import { Command } from 'commander'
 
-// import * as loraPacket from 'lora-packet'
-
-// const readline   = require('readline')
-// const fs         = require('fs')
 const loraPacket = require('lora-packet')
 const colors     = require('colors')
 
 export class Decoder {
+
+    private writeData(csvLine: string, deviceAddress: string, json: string, cmdObj: Command): void {
+        if (!cmdObj.quiet) {
+            console.log(csvLine)
+        }
+
+        if (cmdObj.destFile) {
+            fs.appendFileSync(cmdObj.destFile, csvLine + '\n')
+        }
+
+        if (cmdObj.splitDevices) {
+            fs.appendFileSync(`${cmdObj.out}/${deviceAddress}.out`, csvLine + '\n')
+            fs.appendFileSync(`${cmdObj.out}/${deviceAddress}.log`, json + ',\n')
+        }
+    }
 
     decode(inputFile: string, cmdObj: Command): void {
 
@@ -21,6 +32,16 @@ export class Decoder {
             console.warn('Running quietly')
         } else {
             console.log("Device Address;Message Type;Direction;FCnt;FPort;Payload Data;Original json")
+        }
+
+        var filterEnabled = false
+        var filter: Array<string> = []
+        if (cmdObj.filter && cmdObj.filter.length > 0) {
+            filterEnabled = true
+            filter = cmdObj.filter.split(',')
+            console.warn(`Device filter on: ${filter}`)
+        } else {
+            console.warn('Device filter off')
         }
         
         if (cmdObj.splitDevices) {    
@@ -65,6 +86,7 @@ export class Decoder {
         }
         
         var processed = 0
+        var recordsWritten = 0
         
         console.warn('Start processing:')
 
@@ -100,16 +122,15 @@ export class Decoder {
                     
                     let csvLine = `${deviceAddress};${msgType};${msgDirection};${msgFCnt};${payloadPort};${payloadData};${json}`
         
-                    if (!cmdObj.quiet) {
-                        console.log(csvLine)
+                    // if filtering, only write when deviceAddress in filter
+                    if (filterEnabled && filter.includes(deviceAddress)) {
+                        this.writeData(csvLine, deviceAddress, json, cmdObj)
+                        recordsWritten++
                     }
-        
-                    if (cmdObj.destFile) {
-                        fs.appendFileSync(cmdObj.destFile, csvLine + '\n')
-                    }
-        
-                    if (cmdObj.splitDevices) {
-                        fs.appendFileSync(`${cmdObj.out}/${deviceAddress}.out`, csvLine + '\n')
+                    // if not filtering, write everything
+                    if (!filterEnabled) {
+                        this.writeData(csvLine, deviceAddress, json, cmdObj)
+                        recordsWritten++
                     }
         
                     processed++
@@ -120,7 +141,8 @@ export class Decoder {
         })
         
         readInterface.on("close", () => {
-            console.warn(`Processed ${processed} records`)
+            console.warn(`Processed ${processed} records, written ${recordsWritten} records`)
         })        
     }
+
 }
