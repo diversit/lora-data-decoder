@@ -1,15 +1,17 @@
 import * as fs from 'fs'
 import * as readline from 'readline'
 import { Command } from 'commander'
+import { factory } from "./Logging"
 
 const loraPacket = require('lora-packet')
 const colors     = require('colors')
+const log        = factory.getLogger("Sender")
 
 export class Decoder {
 
     private writeData(csvLine: string, deviceAddress: string, json: string, cmdObj: Command): void {
         if (!cmdObj.quiet) {
-            console.log(csvLine)
+            log.info(csvLine)
         }
 
         if (cmdObj.destFile) {
@@ -18,20 +20,20 @@ export class Decoder {
 
         if (cmdObj.splitDevices) {
             fs.appendFileSync(`${cmdObj.out}/${deviceAddress}.csv`, csvLine + '\n')
-            fs.appendFileSync(`${cmdObj.out}/${deviceAddress}.log`, json + ',\n')
+            fs.appendFileSync(`${cmdObj.out}/${deviceAddress}.json`, json + ',\n')
         }
     }
 
     decode(inputFile: string, cmdObj: Command): void {
 
         if (!inputFile) {
-            console.warn(colors.red("input filename missing"))
+            log.warn(colors.red("input filename missing"))
         }
                 
         if (cmdObj.quiet) {
-            console.warn('Running quietly')
+            log.warn('Running quietly')
         } else {
-            console.log("Device Address;Message Type;Direction;FCnt;FPort;Payload Data;Original json")
+            log.info("Device Address;Message Type;Direction;FCnt;FPort;Payload Data;Original json")
         }
 
         var filterEnabled = false
@@ -39,15 +41,15 @@ export class Decoder {
         if (cmdObj.filter && cmdObj.filter.length > 0) {
             filterEnabled = true
             filter = cmdObj.filter.split(',')
-            console.warn(`Device filter on: ${filter}`)
+            log.warn(`Device filter on: ${filter}`)
         } else {
-            console.warn('Device filter off')
+            log.warn('Device filter off')
         }
         
         if (cmdObj.splitDevices) {    
             if (fs.existsSync(cmdObj.out)) {
                 if (cmdObj.clear) {
-                    console.warn(`Clearing output folder ${cmdObj.out}`)
+                    log.warn(`Clearing output folder ${cmdObj.out}`)
                     let deleted = fs.readdirSync(cmdObj.out)
                         .map((file: string) => {
                             // console.warn(`Delete ${file}`)
@@ -55,19 +57,19 @@ export class Decoder {
                             return 1
                         })
                         .reduce((a: number, b: number) => a + b, 0)
-                    console.warn(`Removed ${deleted} files from ${cmdObj.out}`)
+                        log.warn(`Removed ${deleted} files from ${cmdObj.out}`)
                 }
             }
         
             if (!fs.existsSync(cmdObj.out)) {
-                console.warn(`Creating folder ${cmdObj.out}`)
+                log.warn(`Creating folder ${cmdObj.out}`)
                 fs.mkdirSync(cmdObj.out)
             } 
         }
         
         if (cmdObj.destFile && fs.existsSync(cmdObj.destFile) && cmdObj.clear) {
             fs.unlinkSync(cmdObj.destFile)
-            console.warn(`Removed ${cmdObj.destFile}`)
+            log.warn(`Removed ${cmdObj.destFile}`)
         }
 
         const readInterface = readline.createInterface({
@@ -88,7 +90,7 @@ export class Decoder {
         var processed = 0
         var recordsWritten = 0
         
-        console.warn('Start processing:')
+        log.info('Start processing:')
 
         readInterface.on('line', (line: string) => {
             if (line != "[" && line != "]" && line != "{}") {
@@ -99,19 +101,8 @@ export class Decoder {
                 let obj = JSON.parse(json)
                 if (obj && obj.rxpk) {
                     let data = obj.rxpk[0].data;
-                    // console.log(`data: ${data}`)
         
                     let packet = loraPacket.fromWire(Buffer.from(data, 'base64'))
-                    // console.log(`packet toString: ${packet.toString()}`)
-        
-                    // console.log("packet MIC=" + asHexString(packet.getBuffers().MIC));
-                    // console.log("FRMPayload=" + asHexString(packet.getBuffers().FRMPayload));
-                    // console.log(`Message Type: ${packet.getMType()}`)
-                    // console.log(`Direction: ${packet.getDir()}`)
-                    // console.log(`FCnt: ${packet.getFCnt()}`)
-                    // console.log(`FPort: ${packet.getFPort()}`)
-                    // console.log(`Buffers: ${JSON.stringify(packet.getBuffers())}`)
-                    // console.log(`isDataMessage: ${packet.isDataMessage()}`)
         
                     let msgType = packet.getMType()
                     let msgDirection = packet.getDir()
@@ -141,7 +132,7 @@ export class Decoder {
         })
         
         readInterface.on("close", () => {
-            console.warn(`Processed ${processed} records, written ${recordsWritten} records`)
+            log.info(`Processed ${processed} records, written ${recordsWritten} records`)
         })        
     }
 

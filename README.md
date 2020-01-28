@@ -52,7 +52,7 @@ Command to prepare the export file from Wireshark to it can easily be processed.
 `> lora-data-decoder prepare <wireshark-export.json>`
 
 Output
-- packets.log : contains the json packets only
+- packets.json : contains the json packets only
 - packets.csv : a csv file containing all fields of the PUSH_DATA packet as described on [packet forwarder protocol](https://github.com/Lora-net/packet_forwarder/blob/master/PROTOCOL.TXT). Contains fields:
   - protocol version
   - random token
@@ -69,12 +69,12 @@ See `> lora-data-decoder decode -h` for all options.
 
 Decode packets and split per device:
 
-`> lora-data-decoder decode -d decoded.all -o out -s packets.log`
+`> lora-data-decoder decode -d decoded.all -o out -s packets.json`
 
 Output
 - decoded.all : a csv with all records of all devices. (field see below))
 - out/ : folder with output files per device.
-- out/\<device-address>.log : contains the json packet only
+- out/\<device-address>.json : contains the json packet only
 - out/\<device-address>.csv : contains csv record with fields
   - device address (hex format)
   - message type (e.g. 'Unconfirmed Data')

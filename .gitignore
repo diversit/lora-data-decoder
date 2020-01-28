@@ -1,5 +1,6 @@
 *.out
-*.log
+*.json
 *.csv
 .DS_Store
 node_modules/
+out/
