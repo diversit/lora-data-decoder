@@ -7,8 +7,19 @@
     "outDir": "lib",
     "rootDir": "src",
     "strict": true,
-    "types": ["node"],
+    // "types": ["jest","node"],
+    "typeRoots": [
+      "@types",
+      "node_modules/@types"
+    ],
     "esModuleInterop": true,
-    "resolveJsonModule": true
-  }
+    "resolveJsonModule": true,
+    "downlevelIteration": true
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "@types"
+  ]
 }

@@ -10,10 +10,12 @@
   "scripts": {
     "clean": "rm -rf ./lib/*",
     "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/decoder-cli.ts",
-    "deploy": "npm run build && npm run test",
+    "deploy": "npm run build && npm run test && npm run install",
+    "install": "sudo npm i -g",
     "build": "tsc -p .",
-    "test": "sudo npm i -g && lora-data-decoder",
-    "refresh": "rm -rf ./node_modules ./package-lock.json && npm install"
+    "run": "npm run install && lora-data-decoder",
+    "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
+    "test": "jest"
   },
   "author": "Joost den Boer",
   "license": "MIT",
@@ -21,18 +23,23 @@
     "chalk": "^3.0.0",
     "clear": "^0.1.0",
     "colors": "^1.4.0",
-    "commander": "^4.0.1",
+    "commander": "^4.1.0",
+    "event-stream": "^4.0.1",
     "figlet": "^1.2.4",
     "json-array-stream": "^0.1.2",
     "json-array-streams": "^1.0.1",
     "lora-packet": "^0.7.12",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "typescript-logging": "^0.6.4"
   },
   "devDependencies": {
-    "@types/node": "^12.12.17",
+    "@types/jest": "^25.1.0",
+    "@types/node": "^12.12.25",
+    "jest": "^25.1.0",
     "nodemon": "^2.0.2",
-    "ts-node": "^8.5.4",
+    "ts-jest": "^25.0.0",
+    "ts-node": "^8.6.2",
     "ts-node-dev": "^1.0.0-pre.44",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.5"
   }
 }

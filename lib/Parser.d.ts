@@ -5,7 +5,7 @@ export declare class Parser {
      * Stream from input file and parse json streaming.
      * Retrieve the data field and get all elements from it.
      * Write to 'packets.log' in format `decoder` supports.
-     * Write to 'packets.out' in csv format to be used for resending udp packets.
+     * Write to 'packets.csv' in csv format to be used for resending udp packets.
      * @param inputFile
      * @param cmdObj
      */

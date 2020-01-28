@@ -17,7 +17,7 @@ export class Decoder {
         }
 
         if (cmdObj.splitDevices) {
-            fs.appendFileSync(`${cmdObj.out}/${deviceAddress}.out`, csvLine + '\n')
+            fs.appendFileSync(`${cmdObj.out}/${deviceAddress}.csv`, csvLine + '\n')
             fs.appendFileSync(`${cmdObj.out}/${deviceAddress}.log`, json + ',\n')
         }
     }
