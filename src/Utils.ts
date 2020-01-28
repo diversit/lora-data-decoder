@@ -1,6 +1,7 @@
 /**
  * Utility functions
  */
+import * as fs from 'fs'
 
 export function msleep(millis: number): void {
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, millis)
@@ -8,6 +9,40 @@ export function msleep(millis: number): void {
 
 export function sleep(seconds: number): void {
     msleep(seconds * 1000)
+}
+
+export function writeCsvData(header: string, filename: string, csvLine: string): void {
+    if (!fs.existsSync(filename)) {
+        fs.appendFileSync(filename, header + '\n')
+    }
+    fs.appendFileSync(filename, csvLine + '\n')
+}
+
+export function writeJsonData(filename: string, json: string): void {
+    if (!fs.existsSync(filename)) {
+        fs.appendFileSync(filename, '[\n') // start of json array
+    }
+    fs.appendFileSync(filename, json.endsWith(',') ? json + '\n' : json + ',\n')
+}
+
+export function writeJsonArrayEnd(filenameOrDir: string): void {
+    let stat = fs.statSync(filenameOrDir)
+    if (stat.isDirectory()) {
+        // process al json files in given folder
+        fs.readdir(filenameOrDir, (err: NodeJS.ErrnoException | null, files: string[]) => {
+            if (err) {
+                throw err
+            } else {
+                files.filter(filename => filename.endsWith(".json"))
+                    .forEach(filename => {
+                        writeJsonArrayEnd(filenameOrDir + '/' + filename)
+                    })
+            }
+        })
+    } else if (stat.isFile()) {
+        // process given file
+        fs.appendFileSync(filenameOrDir, ']\n')
+    }
 }
 
 class Latch {

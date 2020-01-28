@@ -1,8 +1,8 @@
-/**
- * Utility functions
- */
 export declare function msleep(millis: number): void;
 export declare function sleep(seconds: number): void;
+export declare function writeCsvData(header: string, filename: string, csvLine: string): void;
+export declare function writeJsonData(filename: string, json: string): void;
+export declare function writeJsonArrayEnd(filenameOrDir: string): void;
 declare class Latch {
     private int32;
     constructor();

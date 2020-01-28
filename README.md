@@ -58,7 +58,7 @@ Output
   - random token
   - push data identifier (0x00)
   - gateway identifier (MAC address)
-  - json object.
+  - json object
   
   This file can be used to replay to events to a (different) LoRa server using `send` command.
 
@@ -76,6 +76,11 @@ Output
 - out/ : folder with output files per device.
 - out/\<device-address>.json : contains the json packet only
 - out/\<device-address>.csv : contains csv record with fields
+  - protocol version
+  - random token
+  - push data identifier (0x00)
+  - gateway identifier (MAC address)
+  - json object
   - device address (hex format)
   - message type (e.g. 'Unconfirmed Data')
   - message direction

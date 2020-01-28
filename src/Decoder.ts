@@ -2,6 +2,8 @@ import * as fs from 'fs'
 import * as readline from 'readline'
 import { Command } from 'commander'
 import { factory } from "./Logging"
+import { DecoderCsvLine, ParserCsvLine } from "./model/Csv"
+import { writeCsvData, writeJsonData, writeJsonArrayEnd } from './Utils'
 
 const loraPacket = require('lora-packet')
 const colors     = require('colors')
@@ -15,12 +17,12 @@ export class Decoder {
         }
 
         if (cmdObj.destFile) {
-            fs.appendFileSync(cmdObj.destFile, csvLine + '\n')
+            writeCsvData(DecoderCsvLine.HEADER, cmdObj.destFile, csvLine)
         }
 
         if (cmdObj.splitDevices) {
-            fs.appendFileSync(`${cmdObj.out}/${deviceAddress}.csv`, csvLine + '\n')
-            fs.appendFileSync(`${cmdObj.out}/${deviceAddress}.json`, json + ',\n')
+            writeCsvData(DecoderCsvLine.HEADER, `${cmdObj.out}/${deviceAddress}.csv`, csvLine)            
+            writeJsonData(`${cmdObj.out}/${deviceAddress}.json`, json)
         }
     }
 
@@ -93,12 +95,13 @@ export class Decoder {
         log.info('Start processing:')
 
         readInterface.on('line', (line: string) => {
-            if (line != "[" && line != "]" && line != "{}") {
-                let json = line.endsWith(',') ? line.slice(0, -1) : line
+            if (line != "[" && line != "]" && line != "{}" && !line.startsWith(ParserCsvLine.HEADER)) {
+                let csvLine = this.parseLine(line)
+                // let json = line.endsWith(',') ? line.slice(0, -1) : line
 
                 // console.log(`line:${json}`)
         
-                let obj = JSON.parse(json)
+                let obj = JSON.parse(csvLine.json())
                 if (obj && obj.rxpk) {
                     let data = obj.rxpk[0].data;
         
@@ -111,16 +114,16 @@ export class Decoder {
                     let payloadData = asHexString(packet.getBuffers().FRMPayload)
                     let deviceAddress = asHexString(packet.getBuffers().DevAddr)
                     
-                    let csvLine = `${deviceAddress};${msgType};${msgDirection};${msgFCnt};${payloadPort};${payloadData};${json}`
+                    let csvLineOut = `${line};${deviceAddress};${msgType};${msgDirection};${msgFCnt};${payloadPort};${payloadData}`
         
                     // if filtering, only write when deviceAddress in filter
                     if (filterEnabled && filter.includes(deviceAddress)) {
-                        this.writeData(csvLine, deviceAddress, json, cmdObj)
+                        this.writeData(csvLineOut, deviceAddress, csvLine.json(), cmdObj)
                         recordsWritten++
                     }
                     // if not filtering, write everything
                     if (!filterEnabled) {
-                        this.writeData(csvLine, deviceAddress, json, cmdObj)
+                        this.writeData(csvLineOut, deviceAddress, csvLine.json(), cmdObj)
                         recordsWritten++
                     }
         
@@ -133,7 +136,13 @@ export class Decoder {
         
         readInterface.on("close", () => {
             log.info(`Processed ${processed} records, written ${recordsWritten} records`)
+            if (cmdObj.splitDevices) {
+                writeJsonArrayEnd(cmdObj.out)
+            }
         })        
     }
 
+    private parseLine(line: string): ParserCsvLine {
+        return new ParserCsvLine(line)
+    }
 }

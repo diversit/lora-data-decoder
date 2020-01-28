@@ -4,6 +4,7 @@ import { Command } from 'commander'
 import * as utils from './Utils'
 import { factory } from "./Logging"
 import * as es from 'event-stream'
+import { ParserCsvLine } from './model/Csv'
 
 const colors = require('colors')
 const log    = factory.getLogger("Sender")
@@ -37,7 +38,7 @@ export class Sender {
         let s = fs.createReadStream(inputFile)
             .pipe(es.split())
             .pipe(es.filterSync((line: string) => {
-                return line.trim() != '' // filter out empty lines
+                return line.trim() != '' && !line.startsWith(ParserCsvLine.HEADER) // filter out empty lines
             }))
             .pipe(es.mapSync((line: string) => this.parseLineToUint8Array(line)))
             .pipe(es.mapSync(async (bytes: Uint8Array) => {
@@ -72,14 +73,15 @@ export class Sender {
     private parseLineToUint8Array(line: string): Uint8Array {
         log.debug(`parse line: ${line}`)
 
-        let lineItems: Array<string> = line.split(';')
+        // let lineItems: Array<string> = line.split(';')
+        let csvLine = new ParserCsvLine(line)
         
         // get individual parts
-        let protocol    = this.fromHexString(lineItems[0])
-        let randomToken = this.fromHexString(lineItems[1])
-        let pushData    = this.fromHexString(lineItems[2])
-        let gatewayMac  = this.fromHexString(lineItems[3])
-        let jsonPacket  = new TextEncoder().encode(lineItems[4].slice(0, -1)) // remove trailing comma
+        let protocol    = this.fromHexString(csvLine.protocol())
+        let randomToken = this.fromHexString(csvLine.randomToken())
+        let pushData    = this.fromHexString(csvLine.pushData())
+        let gatewayMac  = this.fromHexString(csvLine.gatewayMac())
+        let jsonPacket  = new TextEncoder().encode(csvLine.json()) // remove trailing comma
 
         log.debug(`${protocol}${randomToken}${pushData}${gatewayMac}${jsonPacket}`)
 

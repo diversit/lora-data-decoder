@@ -1,12 +1,14 @@
 import { Command } from 'commander'
 import * as fs from 'fs'
 import { factory } from "./Logging"
+import { writeCsvData, writeJsonData, writeJsonArrayEnd } from './Utils'
+import { ParserCsvLine } from './model/Csv'
 
 const jsonArrayStreams = require('json-array-streams')
 
-const PACKETS_OUT = 'packets.csv'
-const PACKETS_LOG = 'packets.json'
-const log         = factory.getLogger("Sender")
+const PACKETS_CSV  = 'packets.csv'
+const PACKETS_JSON = 'packets.json'
+const log          = factory.getLogger("Sender")
 
 export class Parser {
 
@@ -27,8 +29,8 @@ export class Parser {
      */
     parse(inputFile: string, cmdObj: Command): void {
 
-        this.deleteIfFileExists(PACKETS_LOG)
-        this.deleteIfFileExists(PACKETS_OUT)
+        this.deleteIfFileExists(PACKETS_JSON)
+        this.deleteIfFileExists(PACKETS_CSV)
 
         log.info('Start processing:')
 
@@ -48,8 +50,9 @@ export class Parser {
                 let json = Buffer.from(payload, 'hex').toString()
 
                 let csvLine = `${protocol};${randomToken};${dataType};${gatewayId};${json}`
-                fs.appendFileSync(PACKETS_OUT, csvLine + ',\n')
-                fs.appendFileSync(PACKETS_LOG, json + '\n')
+
+                writeCsvData(ParserCsvLine.HEADER, PACKETS_CSV, csvLine)
+                writeJsonData(PACKETS_JSON, json)
 
                 process.stderr.write('.')
             })
@@ -57,6 +60,7 @@ export class Parser {
             .on('end', () => {
                 process.stderr.write('\n')
                 log.info(`Done`)
+                writeJsonArrayEnd(PACKETS_JSON)
             })
     }
 }
